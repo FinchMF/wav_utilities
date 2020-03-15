@@ -1,4 +1,23 @@
-Frequency = [ {'C': {0: 16.35,
+
+'''
+This module contains a set of pitch and frequency tools.
+
+pitch_to_frequency is a refrence dictionary that gives you a pitch's frequency.
+
+the pi section is a set of functions that allows you to call digts of pi and transform them into
+frequencies. The pi_hz_ocatve is a dictionary that gives you the octave of a the pi's frequences as keys. 
+
+closet_pitch takes a frequencies anf gives you the closet pitch to given frequency.
+
+'''
+
+
+###################################
+# P I T C H T O F R E Q U E N C Y #
+###################################
+
+
+pitch_to_frequency = [ {'C': {0: 16.35,
                      1: 32.70,
                      2: 65.41,
                      3: 130.81,
@@ -110,6 +129,10 @@ Frequency = [ {'C': {0: 16.35,
 ]
 
 
+#######
+# P I #
+#######
+
 # generate pi - the int passing through is the length of digits to call
 # this function is built from the spigot algorithim
 def make_pi(int):
@@ -171,11 +194,16 @@ pi_octaves = make_octaves(pi)
 # call octave range
 octaves = range(-3,9)
 
-# pull dictionary 
+# pull pi octave dictionary dictionary 
 pi_hz_octave = dict(zip(octaves, pi_octaves))
 
 
-# use closest pitch calulate nearest pitch to passed frequency
+#################################################
+# D E T E C T  N E I G H B O R I N G  P I T C H #
+#################################################
+
+
+# use closest pitch to calulate nearest pitch to passed frequency
 from math import log2, pow
 
 A4 = 440

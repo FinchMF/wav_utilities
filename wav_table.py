@@ -5,10 +5,17 @@ import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 
+# %matplotlib inline - make sure to add this your jupyter notebook session
+
 
 ###############################
 # F R E Q E U N C Y C L A S S #
 ###############################
+
+'''
+This class generates a set of ocatves and overtone series from a given frequency.
+It also allow you to transpose sets of frequencies. 
+'''
 
 class Hz:
     def __init__(self, hz, length=range(0,16)):
@@ -81,42 +88,85 @@ class Hz:
 class Raw_Signal:
     """ 
    Raw_Signal is a class that instantiates signal objects that generate raw data files in the form of wave. 
-   It does not produce a wav file.
+   It does not produce a wav file. 
+   
+   The default is:
+    sample_rate =100
+    freq=3
+    samples=50
+    
+    The default is set to this for Raw_Signal, so when turining the graph feature on, something representble shows
     """
 
-    def __init__(self, sampling_rate, freq, samples):
+    def __init__(self, sampling_rate=100, freq=3, samples=50, generate=None, graph=None):
         self.sampling_rate = sampling_rate
         self.freq = freq
         self.samples = samples 
         self.x = np.arange(self.samples)
+        self.generate = generate
+        self.graph = graph 
       
     def make_sine_wav(self):
         y = 100*np.sin(2 * np.pi * self.freq * self.x / self.sampling_rate)
-        f = open('raw_sine.wav', 'wb')
-        for i in y:
-            f.write(struct.pack('b', int(i)))
-        f.close()
+        if self.generate is None:
+            pass
+        else:
+            f = open('raw_{}_sine.wav'.format(self.freq), 'wb')
+            for i in y:
+                f.write(struct.pack('b', int(i)))
+            f.close()
+        if self.graph is None:
+            pass
+        else:
+            plt.stem(self.x,y, 'r', )
+            plt.plot(self.x,y)
+
     
     def make_square_wav(self):
         y = 100*sg.square(2 * np.pi * self.freq * self.x / self.sampling_rate)
-        f = open('raw_square.wav', 'wb')
-        for i in y:
-            f.write(struct.pack('b', int(i)))
-        f.close()
+        if self.generate is None:
+            pass
+        else:
+            f = open('raw_{}_square.wav'.format(self.freq), 'wb')
+            for i in y:
+                f.write(struct.pack('b', int(i)))
+            f.close()
+        if self.graph is None:
+            pass
+        else:
+            plt.stem(self.x,y, 'r', )
+            plt.plot(self.x,y)
+
 
     def make_square_wav_duty_cycle(self, duty):
         y = 100*sg.square(2 * np.pi * self.freq * self.x / self.sampling_rate, duty)
-        f = open('raw_square_{}.wav'.format(duty), 'wb')
-        for i in y:
-            f.write(struct.pack('b', int(i)))
-        f.close()
+        if self.generate is None:
+            pass
+        else:
+            f = open('raw_{}_square_{}.wav'.format(self.freq, duty), 'wb')
+            for i in y:
+                f.write(struct.pack('b', int(i)))
+            f.close()
+        if self.graph is None:
+            pass
+        else:
+            plt.stem(self.x,y,'r', )
+            plt.plot(self.x,y)
     
     def make_sawtooth_wav(self):
         y = 100*sg.sawtooth(2 * np.pi * self.freq * self.x / self.sampling_rate)
-        f = open('raw_sawtooth.wav', 'wb')
-        for i in y:
-            f.write(struct.pack('b', int(i)))
-        f.close()
+        if self.generate is None:
+            pass
+        else:
+            f = open('raw_{}_sawtooth.wav'.format(self.freq), 'wb')
+            for i in y:
+                f.write(struct.pack('b', int(i)))
+            f.close()
+        if self.graph is None:
+            pass
+        else:
+            plt.stem(self.x,y, 'r', )
+            plt.plot(self.x,y)
 
 from scipy.io.wavfile import write
 import wave
@@ -126,8 +176,16 @@ class Wav_Signal:
     """ 
     Wav_Signal is a  class that instantiates signal objects that generate audio waves.
     It also can make a modulated Signal and save as an audio file.
+
+    The default is:
+        sps=44100
+        carrier_hz=440.0
+        duration_s=10.0
+        duty=0.8
+
+    The default is set to A4. This is to allow objects to be immediately usable for example use
     """
-    def __init__(self, sps, carrier_hz, duration_s, duty=0.8):
+    def __init__(self, sps=44100, carrier_hz=440.0, duration_s=10.0, duty=0.8):
         self.sps = sps
         self.carrier_hz = carrier_hz
         self.duration_s = duration_s
