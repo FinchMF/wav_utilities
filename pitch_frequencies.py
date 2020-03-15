@@ -109,3 +109,81 @@ Frequency = [ {'C': {0: 16.35,
             }
 ]
 
+
+# generate pi - the int passing through is the length of digits to call
+# this function is built from the spigot algorithim
+def make_pi(int):
+    q, r, t, k, m, x = 1, 0, 1, 1, 3, 3
+    for j in range(int):
+        if 4 * q + r - t < m * t:
+            yield m
+            q, r, t, k, m, x = 10*q, 10*(r-m*t), t, k, (10*(3*q+r))//t - 10*m, x
+        else:
+            q, r, t, k, m, x = q*k, (2*q+r)*x, t*x, k+1, (q*(7*k+2)+r*x)//(t*x), x+2
+
+# generate print statment of digits called from make_pi
+def digits_of_pi(int):
+    digits_of_pi = []
+
+    for i in make_pi(int):
+        digits_of_pi.append(str(i))
+
+    pi_digits = digits_of_pi[:1] + ['.'] + digits_of_pi[1:]
+    pi_string = "".join(pi_digits)
+    return print(str(len(pi_string) - 2 ) + ' digits of pi:\n %s' % pi_string)
+
+# pi_call to make 1157 digits of pi
+pi_call = digits_of_pi(5000)
+
+# grab the first 4 digits as float to make frequency
+pi = float(pi_call[:4]) 
+
+# make octaves for pi
+def make_octaves(freq):
+     freq_list = []
+     freq_list.append(freq)
+     oct_1 = freq * 2
+     freq_list.append(oct_1)
+     oct_2 = oct_1 * 2
+     freq_list.append(oct_2) 
+     oct_3 = oct_2 * 2
+     freq_list.append(oct_3) 
+     oct_4 = oct_3 * 2 
+     freq_list.append(oct_4)
+     oct_5 = oct_4 * 2
+     freq_list.append(oct_5)
+     oct_6 = oct_5 * 2
+     freq_list.append(oct_6)
+     oct_7 = oct_6 * 2
+     freq_list.append(oct_7)
+     oct_8 = oct_7 * 2
+     freq_list.append(oct_8)
+     oct_9 = oct_8 * 2
+     freq_list.append(oct_9)
+     oct_10 = oct_9 * 2
+     freq_list.append(oct_10)
+     oct_11 = oct_10 * 2
+     freq_list.append(oct_11)
+     return freq_list
+
+# call octaves
+pi_octaves = make_octaves(pi)
+# call octave range
+octaves = range(-3,9)
+
+# pull dictionary 
+pi_hz_octave = dict(zip(octaves, pi_octaves))
+
+
+# use closest pitch calulate nearest pitch to passed frequency
+from math import log2, pow
+
+A4 = 440
+C0 = A4*pow(2, -4.75)
+name = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    
+def closest_pitch(freq):
+    h = round(12*log2(freq/C0))
+    octave = h // 12
+    n = h % 12
+    return name[n] + str(octave)

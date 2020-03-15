@@ -1,9 +1,81 @@
 import struct
 import numpy as np
 from scipy import signal as sg
+import librosa
+import librosa.display
 import matplotlib.pyplot as plt
 
 
+###############################
+# F R E Q E U N C Y C L A S S #
+###############################
+
+class Hz:
+    def __init__(self, hz, length=range(0,16)):
+        self.hz = hz
+        self.length = length
+
+    def make_octaves(self):
+        freq_list = []
+        freq_list.append(self.hz)
+        oct_1 = self.hz * 2
+        freq_list.append(oct_1)
+        oct_2 = oct_1 * 2
+        freq_list.append(oct_2) 
+        oct_3 = oct_2 * 2
+        freq_list.append(oct_3) 
+        oct_4 = oct_3 * 2 
+        freq_list.append(oct_4)
+        oct_5 = oct_4 * 2
+        freq_list.append(oct_5)
+        oct_6 = oct_5 * 2
+        freq_list.append(oct_6)
+        oct_7 = oct_6 * 2
+        freq_list.append(oct_7)
+        oct_8 = oct_7 * 2
+        freq_list.append(oct_8)
+        oct_9 = oct_8 * 2
+        freq_list.append(oct_9)
+        oct_10 = oct_9 * 2
+        freq_list.append(oct_10)
+        oct_11 = oct_10 * 2
+        freq_list.append(oct_11)
+        return freq_list
+
+
+    def make_overtone_series(self):
+        overtone_series = []
+        for i in self.length:
+            harmonic = i * self.hz
+            overtone_series.append(harmonic)
+        return overtone_series
+    
+
+    def transpose_hz(self, wav_list=None, transposition_amnt=None, direction=None):
+        if wav_list is None:
+            if direction == 'up':
+                return self.hz * transposition_amnt
+            if direction == 'down':
+                return self.hz / transposition_amnt
+        else:
+            transposed_list = []
+            if direction == 'up':
+                for hz in wav_list:
+                    transposed_list.append(hz * transposition_amnt)
+            if direction == 'down':
+                for hz in wav_list:
+                    transposed_list.append(hz / transposition_amnt)
+            else:
+                print('Before transpoition can occur, please indicate what direction')
+            return transposed_list
+
+        
+
+
+
+#############################
+# S I G N A L C L A S S E S #
+#############################
 
 
 class Raw_Signal:
@@ -47,6 +119,7 @@ class Raw_Signal:
         f.close()
 
 from scipy.io.wavfile import write
+import wave
 
 class Wav_Signal:
 
@@ -90,7 +163,7 @@ class Wav_Signal:
 
 
 
-    def make_mod_wav(self, wave, modulator_hz, ac, ka):
+    def make_mod_wav(self, wave, modulator_hz, ac, ka, graph=None, duration=None):
         if wave == 'sine':
             modulator = np.sin(2 * np.pi * modulator_hz * self.t_samples / self.sps)
             envelope = ac * (1.0 + ka * modulator)
@@ -98,6 +171,15 @@ class Wav_Signal:
             modulated *= 0.3
             modulated_ints = np.int16(modulated * 32767)
             write('mod_{}_sin.wav'.format(self.carrier_hz), self.sps, modulated_ints)
+            if graph == 'graph':
+                y, sr = librosa.load('mod_{}_sin.wav'.format(self.carrier_hz), duration=duration)
+                plt.figure()
+                plt.subplot(3, 1, 1)
+                librosa.display.waveplot(y, sr=sr)
+                plt.title('modulatd_sine')
+            else:
+                pass
+
 
         if wave == 'square':
             modulator = sg.square(2 * np.pi * modulator_hz * self.t_samples / self.sps)
@@ -106,6 +188,14 @@ class Wav_Signal:
             modulated *= 0.3
             modulated_ints = np.int16(modulated * 32767)
             write('mod_{}_sq.wav'.format(self.carrier_hz),self.sps, modulated_ints)
+            if graph == 'graph':
+                y, sr = librosa.load('mod_{}_sq.wav'.format(self.carrier_hz), duration=duration)
+                plt.figure()
+                plt.subplot(3, 1, 1)
+                librosa.display.waveplot(y, sr=sr)
+                plt.title('modulatd_square')
+            else:
+                pass
         
         if wave == 'square_duty':
             modulator = sg.square(2 * np.pi * modulator_hz * self.t_samples / self.sps, self.duty)
@@ -113,7 +203,15 @@ class Wav_Signal:
             modulated = envelope * self.sq_duty_carrier
             modulated *= 0.3
             modulated_ints = np.int16(modulated * 32767)
-            write('mod_{}_sq_cuty_cycle.wav'.format(self.carrier_hz), self.sps, modulated_ints)
+            write('mod_{}_sq_duty_cycle.wav'.format(self.carrier_hz), self.sps, modulated_ints)
+            if graph == 'graph':
+                y, sr = librosa.load('mod_{}_sq_duty_cycle.wav'.format(self.carrier_hz), duration=duration)
+                plt.figure()
+                plt.subplot(3, 1, 1)
+                librosa.display.waveplot(y, sr=sr)
+                plt.title('modulatd_square_{}_duty_cycle'.format(self.duty))
+            else:
+                pass
 
         if wave == 'sawtooth':
             modulator = sg.sawtooth(2 * np.pi * modulator_hz * self.t_samples / self.sps)
@@ -122,3 +220,56 @@ class Wav_Signal:
             modulated *= 0.3
             modulated_ints = np.int16(modulated * 32767)
             write('mod_{}_saw.wav'.format(self.carrier_hz),self.sps, modulated_ints)
+            if graph == 'graph':
+                y, sr = librosa.load('mod_{}_saw.wav'.format(self.carrier_hz), duration=duration)
+                plt.figure()
+                plt.subplot(3, 1, 1)
+                librosa.display.waveplot(y, sr=sr)
+                plt.title('modulatd_sawtooth')
+            else:
+                pass
+
+
+
+###################
+# M E R G E W A V #
+###################
+
+
+'''
+Functions to layer and concatentate wav files once they are generated.
+'''
+def stack_wav(wav_list, output_wav):
+    fnames = wav_list
+    wavs = [wave.open(fn) for fn in fnames]
+    frames = [w.readframes(w.getnframes()) for w in wavs]
+    # here's efficient numpy conversion of the raw byte buffers
+    # '<i2' is a little-endian two-byte integer.
+    samples = [np.frombuffer(f, dtype='<i2') for f in frames]
+    samples = [samp.astype(np.float64) for samp in samples]
+    # mix as much as possible
+    n = min(map(len, samples))
+    mix = samples[0][:n] + samples[1][:n]
+    # Save the result
+    mix_wav = wave.open(output_wav, 'w')
+    mix_wav.setparams(wavs[0].getparams())
+    # before saving, we want to convert back to '<i2' bytes:
+    mix_wav.writeframes(mix.astype('<i2').tobytes())
+    mix_wav.close()
+
+
+def concat_wav(wav_list, output_wav):
+    infiles = wav_list
+    outfile = output_wav
+
+    data= []
+    for infile in infiles:
+        w = wave.open(infile, 'rb')
+        data.append( [w.getparams(), w.readframes(w.getnframes())] )
+        w.close()
+
+    output = wave.open(outfile, 'wb')
+    output.setparams(data[0][0])
+    output.writeframes(data[0][1])
+    output.writeframes(data[1][1])
+    output.close()
