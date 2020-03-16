@@ -65,16 +65,30 @@ class Hz:
             if direction == 'down':
                 return self.hz / transposition_amnt
         else:
-            transposed_list = []
-            if direction == 'up':
-                for hz in wav_list:
-                    transposed_list.append(hz * transposition_amnt)
-            if direction == 'down':
-                for hz in wav_list:
-                    transposed_list.append(hz / transposition_amnt)
-            else:
+            if direction is None:
                 print('Before transpoition can occur, please indicate what direction')
-            return transposed_list
+            else:
+                transposed_list = []
+                if direction == 'up cents':
+                    for hz in wav_list:
+                        transposed_list.append(float(hz) + float(transposition_amnt))
+                if direction == 'up series':
+                    for hz in wav_list:
+                        transposed_list.append(float(hz) * float(transposition_amnt))
+                if direction == 'up octaves':
+                    for hz in wav_list:
+                        transposed_list.append(float(hz) **float(transposition_amnt))
+                if direction == 'down cents':
+                    for hz in wav_list:
+                        transposed_list.append(float(hz) - float(transposition_amnt))        
+                if direction == 'down series':
+                    for hz in wav_list:
+                        transposed_list.append(float(hz) / float(transposition_amnt))
+                if direction == 'down octaves':
+                    for hz in wav_list:
+                        transposed_list.append(float(hz) **float(transposition_amnt))
+            
+        return transposed_list
 
         
 
