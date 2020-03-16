@@ -208,6 +208,7 @@ pi_hz_octave = dict(zip(octaves, pi_octaves))
 
 
 # use closest pitch to calulate nearest pitch to passed frequency
+# if pitch is exact, then it it will also tell the name of the pitch
 from math import log2, pow
 
 A4 = 440
