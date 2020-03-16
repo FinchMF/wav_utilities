@@ -91,9 +91,11 @@ class Raw_Signal:
    It does not produce a wav file. 
    
    The default is:
-    sample_rate =100
+    sample_rate=100
     freq=3
     samples=50
+    generate=None
+    graph=None
     
     The default is set to this for Raw_Signal, so when turining the graph feature on, something representble shows
     """
