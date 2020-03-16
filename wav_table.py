@@ -111,7 +111,7 @@ class Raw_Signal:
         if self.generate is None:
             pass
         else:
-            f = open('../raw_files/raw_{}_sine.wav'.format(self.freq), 'wb')
+            f = open('raw_files/raw_{}_sine.wav'.format(self.freq), 'wb')
             for i in y:
                 f.write(struct.pack('b', int(i)))
             f.close()
@@ -127,7 +127,7 @@ class Raw_Signal:
         if self.generate is None:
             pass
         else:
-            f = open('../raw_files/raw_{}_square.wav'.format(self.freq), 'wb')
+            f = open('raw_files/raw_{}_square.wav'.format(self.freq), 'wb')
             for i in y:
                 f.write(struct.pack('b', int(i)))
             f.close()
@@ -143,7 +143,7 @@ class Raw_Signal:
         if self.generate is None:
             pass
         else:
-            f = open('../raw_files/raw_{}_square_{}.wav'.format(self.freq, duty), 'wb')
+            f = open('raw_files/raw_{}_square_{}.wav'.format(self.freq, duty), 'wb')
             for i in y:
                 f.write(struct.pack('b', int(i)))
             f.close()
@@ -158,7 +158,7 @@ class Raw_Signal:
         if self.generate is None:
             pass
         else:
-            f = open('../raw_files/raw_{}_sawtooth.wav'.format(self.freq), 'wb')
+            f = open('raw_files/raw_{}_sawtooth.wav'.format(self.freq), 'wb')
             for i in y:
                 f.write(struct.pack('b', int(i)))
             f.close()
@@ -202,39 +202,48 @@ class Wav_Signal:
         if wave == 'sine':
             self.sin_carrier *= 0.3
             carrier_ints = np.int16(self.sin_carrier * 32767)
-            write('../wav_files/simple_{}_sin.wav'.format(self.carrier_hz), self.sps, carrier_ints)
+            write('wav_files/simple_{}_sin.wav'.format(self.carrier_hz), self.sps, carrier_ints)
         
         if wave == 'square':
             self.sq_carrier *= 0.3
             carrier_ints = np.int16(self.sq_carrier * 32767)
-            write('../wav_files/simple_{}_square.wav'.format(self.carrier_hz), self.sps, carrier_ints)
+            write('wav_files/simple_{}_square.wav'.format(self.carrier_hz), self.sps, carrier_ints)
         
         if wave == 'square_duty':
             self.sq_duty_carrier *= 0.3
             carrier_ints = np.int16(self.sq_duty_carrier * 32767)
-            write('../wav_files/simple_{}_square_duty_cycle.wav'.format(self.carrier_hz), self.sps, carrier_ints)
+            write('wav_files/simple_{}_square_duty_cycle.wav'.format(self.carrier_hz), self.sps, carrier_ints)
 
         if wave == 'sawtooth':
             self.saw_carrier *= 0.3
             carrier_ints = np.int16(self.saw_carrier * 32767)
-            write('../wav_files/simple_{}_sawtooth.wav'.format(self.carrier_hz), self.sps, carrier_ints)
+            write('wav_files/simple_{}_sawtooth.wav'.format(self.carrier_hz), self.sps, carrier_ints)
+
+    '''
+    Modulating the wave's amplitude is set at these defaults:
+
+    modulator_hz=0.25
+    ac=1.0
+    ka=0.25
+    graph=None (this means graph is off)
+    duration=None (this refers to the duration of the graph's window)
+    '''
 
 
-
-    def make_mod_wav(self, wave, modulator_hz, ac, ka, graph=None, duration=None):
+    def make_mod_wav(self, wave, modulator_hz=0.25, ac=1.0, ka=0.25, graph=None, duration=None):
         if wave == 'sine':
             modulator = np.sin(2 * np.pi * modulator_hz * self.t_samples / self.sps)
             envelope = ac * (1.0 + ka * modulator)
             modulated = envelope * self.sin_carrier
             modulated *= 0.3
             modulated_ints = np.int16(modulated * 32767)
-            write('../wav_files/mod_{}_sin.wav'.format(self.carrier_hz), self.sps, modulated_ints)
-            if graph == 'graph':
-                y, sr = librosa.load('mod_{}_sin.wav'.format(self.carrier_hz), duration=duration)
+            write('wav_files/mod_{}_sin.wav'.format(self.carrier_hz), self.sps, modulated_ints)
+            if graph == 'on':
+                y, sr = librosa.load('wav_files/mod_{}_sin.wav'.format(self.carrier_hz), duration=duration)
                 plt.figure()
                 plt.subplot(3, 1, 1)
                 librosa.display.waveplot(y, sr=sr)
-                plt.title('modulatd_sine')
+                plt.title('modulated_sine')
             else:
                 pass
 
@@ -245,29 +254,29 @@ class Wav_Signal:
             modulated = envelope * self.sq_carrier
             modulated *= 0.3
             modulated_ints = np.int16(modulated * 32767)
-            write('../wav_files/mod_{}_sq.wav'.format(self.carrier_hz),self.sps, modulated_ints)
-            if graph == 'graph':
-                y, sr = librosa.load('mod_{}_sq.wav'.format(self.carrier_hz), duration=duration)
+            write('wav_files/mod_{}_sq.wav'.format(self.carrier_hz),self.sps, modulated_ints)
+            if graph == 'on':
+                y, sr = librosa.load('wav_files/mod_{}_sq.wav'.format(self.carrier_hz), duration=duration)
                 plt.figure()
                 plt.subplot(3, 1, 1)
                 librosa.display.waveplot(y, sr=sr)
-                plt.title('modulatd_square')
+                plt.title('modulated_square')
             else:
                 pass
         
-        if wave == '../wav_files/square_duty':
+        if wave == 'square_duty':
             modulator = sg.square(2 * np.pi * modulator_hz * self.t_samples / self.sps, self.duty)
             envelope = ac * (1.0 + ka * modulator)
             modulated = envelope * self.sq_duty_carrier
             modulated *= 0.3
             modulated_ints = np.int16(modulated * 32767)
-            write('../wav_files/mod_{}_sq_duty_cycle.wav'.format(self.carrier_hz), self.sps, modulated_ints)
-            if graph == 'graph':
-                y, sr = librosa.load('mod_{}_sq_duty_cycle.wav'.format(self.carrier_hz), duration=duration)
+            write('wav_files/mod_{}_sq_duty_cycle.wav'.format(self.carrier_hz), self.sps, modulated_ints)
+            if graph == 'on':
+                y, sr = librosa.load('wav_files/mod_{}_sq_duty_cycle.wav'.format(self.carrier_hz), duration=duration)
                 plt.figure()
                 plt.subplot(3, 1, 1)
                 librosa.display.waveplot(y, sr=sr)
-                plt.title('modulatd_square_{}_duty_cycle'.format(self.duty))
+                plt.title('modulated_square_{}_duty_cycle'.format(self.duty))
             else:
                 pass
 
@@ -277,13 +286,13 @@ class Wav_Signal:
             modulated = envelope * self.saw_carrier
             modulated *= 0.3
             modulated_ints = np.int16(modulated * 32767)
-            write('../wav_files/mod_{}_saw.wav'.format(self.carrier_hz),self.sps, modulated_ints)
-            if graph == 'graph':
-                y, sr = librosa.load('mod_{}_saw.wav'.format(self.carrier_hz), duration=duration)
+            write('wav_files/mod_{}_saw.wav'.format(self.carrier_hz),self.sps, modulated_ints)
+            if graph == 'on':
+                y, sr = librosa.load('wav_files/mod_{}_saw.wav'.format(self.carrier_hz), duration=duration)
                 plt.figure()
                 plt.subplot(3, 1, 1)
                 librosa.display.waveplot(y, sr=sr)
-                plt.title('modulatd_sawtooth')
+                plt.title('modulated_sawtooth')
             else:
                 pass
 
@@ -309,7 +318,7 @@ def stack_wav(wav_list, output_wav):
     n = min(map(len, samples))
     mix = samples[0][:n] + samples[1][:n]
     # Save the result
-    mix_wav = wave.open('../wav_files/' + output_wav, 'w')
+    mix_wav = wave.open('wav_files/' + output_wav, 'w')
     mix_wav.setparams(wavs[0].getparams())
     # before saving, we want to convert back to '<i2' bytes:
     mix_wav.writeframes(mix.astype('<i2').tobytes())
@@ -318,7 +327,7 @@ def stack_wav(wav_list, output_wav):
 
 def concat_wav(wav_list, output_wav):
     infiles = wav_list
-    outfile = '../wav_files/' + output_wav
+    outfile = 'wav_files/' + output_wav
 
     data= []
     for infile in infiles:

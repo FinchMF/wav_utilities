@@ -17,7 +17,7 @@ closet_pitch takes a frequencies anf gives you the closet pitch to given frequen
 ###################################
 
 
-pitch_to_frequency = [ {'C': {0: 16.35,
+pitch_to_frequency = {'C': {0: 16.35,
                      1: 32.70,
                      2: 65.41,
                      3: 130.81,
@@ -126,7 +126,7 @@ pitch_to_frequency = [ {'C': {0: 16.35,
                       7: 3951.07,
                       8: 7902.13}                  
             }
-]
+
 
 
 #######
@@ -156,10 +156,14 @@ def digits_of_pi(int):
     return print(str(len(pi_string) - 2 ) + ' digits of pi:\n %s' % pi_string)
 
 # pi_call to make 1157 digits of pi
-pi_call = digits_of_pi(5000)
+digit_of_pi = []
+for i in make_pi(5000):
+      digit_of_pi.append(str(i))
 
+pi_digits = digit_of_pi[:1] + ['.'] + digit_of_pi[1:]
+pi_string = "".join(pi_digits)
 # grab the first 4 digits as float to make frequency
-pi = float(pi_call[:4]) 
+pi = float(pi_string[:4])
 
 # make octaves for pi
 def make_octaves(freq):
