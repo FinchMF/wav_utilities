@@ -324,6 +324,8 @@ class Wav_Signal:
 '''
 Functions to layer and concatentate wav files once they are generated.
 '''
+
+
 def stack_wav(wav_list, output_wav):
     fnames = wav_list
     wavs = [wave.open(fn) for fn in fnames]
@@ -343,6 +345,29 @@ def stack_wav(wav_list, output_wav):
     mix_wav.close()
 
 
+def callable_stacked_pairs(pairs, filename):
+    count = 0
+    for pair in pairs:
+        fname = filename + '_{}_.wav'.format(count)
+        stack_wav(pair, fname)
+        count += 1
+
+
+def stack_layers(str, fname):
+    list_of_wavs = glob.glob(str)
+    list_of_tupled_wavs = list()
+    while(list_of_wavs):
+        a = list_of_wavs.pop(0); b =list_of_wavs.pop(0)
+        list_of_tupled_wavs.append((a,b))
+    count = 0
+    for paired in list_of_tupled_wavs:
+        name = fname + '_{}.wav'.format(count)
+        stack_wav(paired,name)
+        count += 1
+    return print('All coupled files are now stacked')
+
+
+
 def concat_wav(wav_list, output_wav):
     infiles = wav_list
     outfile = 'wav_files/' + output_wav
@@ -360,19 +385,12 @@ def concat_wav(wav_list, output_wav):
     output.close()
 
 
-
-def stack_layers(str, fname):
-    list_of_wavs = glob.glob(str)
-    list_of_tupled_wavs = list()
-    while(list_of_wavs):
-        a = list_of_wavs.pop(0); b =list_of_wavs.pop(0)
-        list_of_tupled_wavs.append((a,b))
+def callable_concated_pairs(pairs, filename):
     count = 0
-    for paired in list_of_tupled_wavs:
-        name = fname + '_{}.wav'.format(count)
-        stack_wav(paired,name)
+    for pair in pairs:
+        fname = filename + '_{}_.wav'.format(count)
+        concat_wav(pair, fname)
         count += 1
-    return print('All coupled files are now stacked')
 
 
 def concat_layers(str, fname):
