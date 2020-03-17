@@ -4,6 +4,8 @@ from scipy import signal as sg
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
+import pickle
+import glob
 
 # %matplotlib inline - make sure to add this your jupyter notebook session
 
@@ -356,3 +358,46 @@ def concat_wav(wav_list, output_wav):
     output.writeframes(data[0][1])
     output.writeframes(data[1][1])
     output.close()
+
+
+
+def stack_layers(str, fname):
+    list_of_wavs = glob.glob(str)
+    list_of_tupled_wavs = list()
+    while(list_of_wavs):
+        a = list_of_wavs.pop(0); b =list_of_wavs.pop(0)
+        list_of_tupled_wavs.append((a,b))
+    count = 0
+    for paired in list_of_tupled_wavs:
+        name = fname + '_{}.wav'.format(count)
+        stack_wav(paired,name)
+        count += 1
+    return print('All coupled files are now stacked')
+
+
+def concat_layers(str, fname):
+    list_of_wavs = glob.glob(str)
+    list_of_tupled_wavs = list()
+    while(list_of_wavs):
+        a = list_of_wavs.pop(0); b =list_of_wavs.pop(0)
+        list_of_tupled_wavs.append((a,b))
+    count = 0
+    for paired in list_of_tupled_wavs:
+        name = fname + '_{}.wav'.format(count)
+        concat_wav(paired,name)
+        count += 1
+    return print('All coupled files are now connected')
+
+
+#########################
+# S A V E O B J E C T S #
+#########################
+
+def save_obj(obj, filename):
+    with open(filename, 'wb') as saved_obj:
+        pickle.dump(obj, saved_obj)
+
+def load_obj(filename):
+    with open(filename, 'rb') as loaded_obj:
+        new_obj = pickle.load(loaded_obj)
+    return new_obj
