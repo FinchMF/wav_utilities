@@ -3,7 +3,10 @@ librosa==0.7.1
 matplotlib==3.1.2
 numpy==1.17.4
 scipy==1.3.1
+pickle
+glob
 
 # native to python
 math
 wave
+struct
