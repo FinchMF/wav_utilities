@@ -1,16 +1,22 @@
 
+
+####################################
+# F R E Q _ T A B L E  M O D U L E #
+####################################
+
+
 '''
 This module contains a set of pitch and frequency tools.
 
 pitch_to_frequency is a refrence dictionary that gives you a pitch's frequency.
+This dictionary will continue to be developed to include microtonal frequencies
 
-the pi section is a set of functions that allows you to call digts of pi and transform them into
-frequencies. The pi_hz_ocatve is a dictionary that gives you the octave of a the pi's frequences as keys. 
+the pi section is a set of functions and variables that allow you to call digts of pi and transform them into
+frequencies. The pi_hz_ocatve is a dictionary that gives you the octave of pi's frequences as keys. 
 
-closet_pitch takes a frequencies anf gives you the closet pitch to given frequency.
+closet_pitch takes a frequencies and gives you the closet pitch to a given frequency.
 
 '''
-
 
 ###################################
 # P I T C H T O F R E Q U E N C Y #
@@ -128,7 +134,6 @@ pitch_to_frequency = {'C': {0: 16.35,
             }
 
 
-
 #######
 # P I #
 #######
@@ -144,16 +149,17 @@ def make_pi(int):
         else:
             q, r, t, k, m, x = q*k, (2*q+r)*x, t*x, k+1, (q*(7*k+2)+r*x)//(t*x), x+2
 
-# generate print statment of digits called from make_pi
+
+# generate print statment of digits called from make_pi algorhithm
 def digits_of_pi(int):
     digits_of_pi = []
-
     for i in make_pi(int):
         digits_of_pi.append(str(i))
-
     pi_digits = digits_of_pi[:1] + ['.'] + digits_of_pi[1:]
     pi_string = "".join(pi_digits)
     return print(str(len(pi_string) - 2 ) + ' digits of pi:\n %s' % pi_string)
+
+#--------------------------------------------------------------------------------------------------
 
 # pi_call to make 1157 digits of pi
 digit_of_pi = []
@@ -162,8 +168,10 @@ for i in make_pi(5000):
 
 pi_digits = digit_of_pi[:1] + ['.'] + digit_of_pi[1:]
 pi_string = "".join(pi_digits)
-# grab the first 4 digits as float to make frequency
+# grab the 3.14 as float to make frequency
 pi = float(pi_string[:4])
+
+#--------------------------------------------------------------------------------------------------
 
 # make octaves for pi
 def make_octaves(freq):
@@ -197,18 +205,15 @@ def make_octaves(freq):
 pi_octaves = make_octaves(pi)
 # call octave range
 octaves = range(-3,9)
-
 # pull pi octave dictionary dictionary 
 pi_hz_octave = dict(zip(octaves, pi_octaves))
-
 
 #################################################
 # D E T E C T  N E I G H B O R I N G  P I T C H #
 #################################################
 
-
 # use closest pitch to calulate nearest pitch to passed frequency
-# if pitch is exact, then it it will also tell the name of the pitch
+# if pitch is exact, then it can be used to tell you the name of the pitch
 from math import log2, pow
 
 A4 = 440

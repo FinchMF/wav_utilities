@@ -1,3 +1,9 @@
+
+
+##################################
+# W A V _ T A B L E  M O D U L E #
+##################################
+
 import struct
 import numpy as np
 from scipy import signal as sg
@@ -7,7 +13,13 @@ import matplotlib.pyplot as plt
 import pickle
 import glob
 
-# %matplotlib inline - make sure to add this your jupyter notebook session
+# %matplotlib inline - make sure to add this to your notebook session
+
+
+# object property inspector
+def inspect(obj):
+  for attr in dir(obj):
+    print("obj.%s = %r" % (attr, getattr(obj, attr)))
 
 
 ###############################
@@ -16,13 +28,18 @@ import glob
 
 '''
 This class generates a set of ocatves and overtone series from a given frequency.
-It also allow you to transpose sets of frequencies. 
+
+The length is default 0 - 16. This is to allow the overtone series to
+be 17 partials. 
+
+It also can transpose sets of frequencies. 
 '''
 
 class Hz:
     def __init__(self, hz, length=range(0,16)):
         self.hz = hz
         self.length = length
+
 
     def make_octaves(self):
         freq_list = []
@@ -59,13 +76,26 @@ class Hz:
             overtone_series.append(harmonic)
         return overtone_series
     
+    '''
+    The parameters for transpose_hz allow for a variety of transpositon types. 
+    If 'down octave' is chosen, the transposition amnt needs to be a negative int.
+    If no list is passed, the function will default to transposing the frequency of the Hz object.
+    '''
 
     def transpose_hz(self, wav_list=None, transposition_amnt=None, direction=None):
         if wav_list is None:
-            if direction == 'up':
+            if direction == 'up cents':
+                return self.hz + transposition_amnt
+            if direction == 'up series':
                 return self.hz * transposition_amnt
-            if direction == 'down':
+            if direction == 'up octave':
+                return self.hz ** transposition_amnt
+            if direction == 'down cents': 
+                return self.hz - transposition_amnt
+            if direction == 'down series':
                 return self.hz / transposition_amnt
+            if direction == 'down octaves':
+                return self.hz ** transposition_amnt
         else:
             if direction is None:
                 print('Before transpoition can occur, please indicate what direction')
@@ -92,26 +122,24 @@ class Hz:
             
         return transposed_list
 
-
-
 #############################
 # S I G N A L C L A S S E S #
 #############################
 
-
 class Raw_Signal:
     """ 
-   Raw_Signal is a class that instantiates signal objects that generate raw data files in the form of wave. 
-   It does not produce a wav file. 
+   Raw_Signal is a class that instantiates signal objects that generate raw data files in the form of a wave. 
+   When generate is set to on, it does not produce a wav file. However, sing audacity, you are able
+   to convert the file into an audio file.
    
    The default is:
-    sample_rate=100
-    freq=3
-    samples=50
-    generate=None
-    graph=None
+        sample_rate=100
+        freq=3
+        samples=50
+        generate=None
+        graph=None
     
-    The default is set to this for Raw_Signal, so when turining the graph feature on, something representble shows
+    The default is set to these parameters to allow the graph feature to have a coherant representation when turned on.
     """
 
     def __init__(self, sampling_rate=100, freq=3, samples=50, generate=None, graph=None):
@@ -137,7 +165,6 @@ class Raw_Signal:
             plt.stem(self.x,y, 'r', )
             plt.plot(self.x,y)
 
-    
     def make_square_wav(self):
         y = 100*sg.square(2 * np.pi * self.freq * self.x / self.sampling_rate)
         if self.generate is None:
@@ -152,7 +179,6 @@ class Raw_Signal:
         else:
             plt.stem(self.x,y, 'r', )
             plt.plot(self.x,y)
-
 
     def make_square_wav_duty_cycle(self, duty):
         y = 100*sg.square(2 * np.pi * self.freq * self.x / self.sampling_rate, duty)
@@ -188,10 +214,9 @@ from scipy.io.wavfile import write
 import wave
 
 class Wav_Signal:
-
     """ 
-    Wav_Signal is a  class that instantiates signal objects that generate audio waves.
-    It also can make a modulated Signal and save as an audio file.
+    Wav_Signal is a class that instantiates signal objects that generate audio waves.
+    It can make a modulated Signal and save as an audio file as well.
 
     The default is:
         sps=44100
@@ -199,7 +224,7 @@ class Wav_Signal:
         duration_s=10.0
         duty=0.8
 
-    The default is set to A4. This is to allow objects to be immediately usable for example use
+    The default is set to A4. This is to allow objects to be immediately usable for as an example.
     """
     def __init__(self, sps=44100, carrier_hz=440.0, duration_s=10.0, duty=0.8):
         self.sps = sps
@@ -245,7 +270,6 @@ class Wav_Signal:
     duration=None (this refers to the duration of the graph's window)
     '''
 
-
     def make_mod_wav(self, wave, modulator_hz=0.25, ac=1.0, ka=0.25, graph=None, duration=None):
         if wave == 'sine':
             modulator = np.sin(2 * np.pi * modulator_hz * self.t_samples / self.sps)
@@ -262,7 +286,6 @@ class Wav_Signal:
                 plt.title('modulated_sine')
             else:
                 pass
-
 
         if wave == 'square':
             modulator = sg.square(2 * np.pi * modulator_hz * self.t_samples / self.sps)
@@ -313,16 +336,50 @@ class Wav_Signal:
                 pass
 
 
-
 ###################
 # M E R G E W A V #
 ###################
 
-
 '''
 Functions to layer and concatentate wav files once they are generated.
-'''
 
+stack_wav can only layer two waves at a time. If you end up with a list of waves
+you'd like to stack, callable_stacked_pairs will take the the list of files and 
+convert them into a list of tuples that have the coupled waves that will be stacked
+once the list is iterated through. 
+
+it is important to note that the wave list must be an equal number of waves. 
+
+in order to streamline the the functionality given a larger list, the process is as follows:
+
+Here is an example with 128 files. Which turns to 64 tuples.
+
+assume pi_wavs is a the list of 128 files
+the first line reduces twice. 128 - > 64 -> 32
+
+1. stack_quad = stack_inital(pi_wavs, 'stack_pair', 'stack_quad')
+- 32 remain
+2. stack_layers('wav_files/'+stack_quad+'*.wav', 'stack_oct')
+- 16 reamin 
+3. stack_layers('wav_files/stack_oct*.wav', 'stack_16')
+- 8 remain
+4. stack_layers('wav_files/stack_16*.wav', 'stack_32')
+- 4 remain
+5. stack_layers('wav_files/stack_32*.wav', 'stack_64')
+- 2 remain
+6. s_list = glob.glob('wav_files/stack_64*.wav')
+  stack_wav(s_list, 'Final_PI_stack.wav')
+
+line 6 takes the remaining 2 files, groups them into a list and passes it
+through stack_wav and titles the output file. The same process can be used with 
+Concatenation of the files. 
+
+
+*** will be be building a function that counts the files ina list and outputs
+whether it there is an even or odd amount of files and how may layers will be
+necessary to reduce down to a final file ***
+
+'''
 
 def stack_wav(wav_list, output_wav):
     fnames = wav_list
@@ -351,6 +408,7 @@ def callable_stacked_pairs(pairs, filename):
         count += 1
     return print('All callable pairs are titled with: ' + filename)
 
+#---------------------------------------------------------------------------------------
 
 def stack_inital(wav_list, filename, fname):
     pair_list = list()
@@ -361,7 +419,6 @@ def stack_inital(wav_list, filename, fname):
     old_fname = 'wav_files/'+filename +'*.wav' 
     stack_layers(old_fname, fname)
     return fname
-
 
 
 def stack_layers(str, fname):
@@ -377,18 +434,16 @@ def stack_layers(str, fname):
         count += 1
     return print('All coupled files are now stacked')
 
-
+#---------------------------------------------------------------------------------------
 
 def concat_wav(wav_list, output_wav):
     infiles = wav_list
     outfile = 'wav_files/' + output_wav
-
     data= []
     for infile in infiles:
         w = wave.open(infile, 'rb')
         data.append( [w.getparams(), w.readframes(w.getnframes())] )
         w.close()
-
     output = wave.open(outfile, 'wb')
     output.setparams(data[0][0])
     output.writeframes(data[0][1])
@@ -404,6 +459,7 @@ def callable_concated_pairs(pairs, filename):
         count += 1
     return print('All callable pairs are titled with: ' + filename)    
 
+#---------------------------------------------------------------------------------------
 
 def concat_inital(wav_list, filename, fname):
     pair_list = list()
@@ -414,7 +470,6 @@ def concat_inital(wav_list, filename, fname):
     old_fname = 'wav_files/'+filename +'*.wav' 
     concat_layers(old_fname, fname)
     return fname
-
 
 
 def concat_layers(str, fname):
@@ -434,6 +489,8 @@ def concat_layers(str, fname):
 # S H O W S I G N A L #
 #######################
 
+''' Show signal plots the wav file in a spectrogram'''
+
 def show_signal(rec):
     y, sr = librosa.load(rec)
 
@@ -452,10 +509,6 @@ def show_signal(rec):
                             x_axis='time')
     return plt.tight_layout()
 
-
-
-
-
 #########################
 # S A V E O B J E C T S #
 #########################
@@ -463,6 +516,7 @@ def show_signal(rec):
 def save_obj(obj, filename):
     with open(filename, 'wb') as saved_obj:
         pickle.dump(obj, saved_obj)
+
 
 def load_obj(filename):
     with open(filename, 'rb') as loaded_obj:
