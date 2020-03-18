@@ -92,8 +92,6 @@ class Hz:
             
         return transposed_list
 
-        
-
 
 
 #############################
@@ -351,6 +349,19 @@ def callable_stacked_pairs(pairs, filename):
         fname = filename + '_{}_.wav'.format(count)
         stack_wav(pair, fname)
         count += 1
+    return print('All callable pairs are titled with: ' + filename)
+
+
+def stack_inital(wav_list, filename, fname):
+    pair_list = list()
+    while(wav_list):
+        a = wav_list.pop(0); b = wav_list.pop(0)
+        pair_list.append((a,b))
+    callable_stacked_pairs(pair_list, filename)
+    old_fname = 'wav_files/'+filename +'*.wav' 
+    stack_layers(old_fname, fname)
+    return fname
+
 
 
 def stack_layers(str, fname):
@@ -391,6 +402,19 @@ def callable_concated_pairs(pairs, filename):
         fname = filename + '_{}_.wav'.format(count)
         concat_wav(pair, fname)
         count += 1
+    return print('All callable pairs are titled with: ' + filename)    
+
+
+def concat_inital(wav_list, filename, fname):
+    pair_list = list()
+    while(wav_list):
+        a = wav_list.pop(0); b = wav_list.pop(0)
+        pair_list.append((a,b))
+    callable_concated_pairs(pair_list, filename)
+    old_fname = 'wav_files/'+filename +'*.wav' 
+    concat_layers(old_fname, fname)
+    return fname
+
 
 
 def concat_layers(str, fname):
@@ -405,6 +429,31 @@ def concat_layers(str, fname):
         concat_wav(paired,name)
         count += 1
     return print('All coupled files are now connected')
+
+#######################
+# S H O W S I G N A L #
+#######################
+
+def show_signal(rec):
+    y, sr = librosa.load(rec)
+
+    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+
+    BINS_PER_OCTAVE = 12 * 3
+    N_OCTAVES = 7
+    C = librosa.amplitude_to_db(np.abs(librosa.cqt(y=y, sr=sr,
+                                            bins_per_octave=BINS_PER_OCTAVE,
+                                            n_bins=N_OCTAVES * BINS_PER_OCTAVE)),
+                                ref=np.max)
+
+    plt.figure(figsize=(24, 8))
+    librosa.display.specshow(C, y_axis='cqt_hz', sr=sr,
+                            bins_per_octave=BINS_PER_OCTAVE,
+                            x_axis='time')
+    return plt.tight_layout()
+
+
+
 
 
 #########################

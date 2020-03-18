@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# ignore large wav files
+wav_files/Final_PI_conn.wav
+wav_files/conn_64*.wav
