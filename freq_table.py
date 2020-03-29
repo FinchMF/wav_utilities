@@ -133,6 +133,19 @@ pitch_to_frequency = {'C': {0: 16.35,
                       8: 7902.13}                  
             }
 
+semitone_intervals = {'m2': 2**(1/12),
+             'M2': (2**2)**(1/12),
+             'm3': (2**3)**(1/12),
+             'M3': (2**4)**(1/12),
+             'P4': (2**5)**(1/12),
+             'd5': (2**6)**(1/12),
+             'P5': (2**7)**(1/12),
+             'm6': (2**8)**(1/12),
+             'M6': (2**9)**(1/12),
+             'm7': (2**10)**(1/12),
+             'M7': (2**11)**(1/12)
+             }
+
 
 #######
 # P I #
@@ -225,3 +238,15 @@ def closest_pitch(freq):
     octave = h // 12
     n = h % 12
     return name[n] + str(octave)
+
+def find_cent_diff(freq_2, freq_1):
+    cents = round(1200 * log2(freq_2/freq_1),2)
+    return cents
+
+def offset_from_closest_pitch(freq):
+    print('given hz: ', freq)
+    f = closest_pitch(freq)
+    print('closest pitch is: ' + f)
+    diff = find_cent_diff(freq ,pitch_to_frequency.get(f[0])[int(f[1])])
+    print('cent offset from '+ f + ' is: ', diff)
+    return f, diff

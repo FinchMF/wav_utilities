@@ -22,6 +22,16 @@ def inspect(obj):
     print("obj.%s = %r" % (attr, getattr(obj, attr)))
 
 
+interval_systems = {'semi_tones': 2**(1/12),
+                    'tri_tones': 2**(1/18),
+                    'quarter_tones': 2**(1/24),
+                    'sixth_tones': 2**(1/36),   
+                    'eigth_tones': 2**(1/48),
+                    'twelevth_tones': 2**(1/72),
+                    'sixteenth_tones': 2**(1/96),
+                    'twenty_fourth_tones': 2**(1/144)
+
+
 ###############################
 # F R E Q E U N C Y C L A S S #
 ###############################
@@ -75,6 +85,15 @@ class Hz:
             harmonic = i * self.hz
             overtone_series.append(harmonic)
         return overtone_series
+
+    def make_system(self, system_type=interval_systems.get('semi_tones'), system_size=range(0,12)):
+    system = {}
+    freq_position = 0
+    for p in system_size:
+        freq = hz * (system_type)**p
+        system['freq_{}'.format(freq_position)] = round(freq, 2)
+        freq_position += 1
+    return system
     
     '''
     The parameters for transpose_hz allow for a variety of transpositon types. 
@@ -85,17 +104,17 @@ class Hz:
     def transpose_hz(self, wav_list=None, transposition_amnt=None, direction=None):
         if wav_list is None:
             if direction == 'up cents':
-                return self.hz + transposition_amnt
+                return round(self.hz *2**(round(transposition_amnt,2)/1200),2)
             if direction == 'up series':
                 return self.hz * transposition_amnt
             if direction == 'up octave':
-                return self.hz ** transposition_amnt
+                return self.hz *2**transposition_amnt
             if direction == 'down cents': 
-                return self.hz - transposition_amnt
+                return round(self.hz *2**(round((-1*transposition_amnt),2)/1200),2)
             if direction == 'down series':
                 return self.hz / transposition_amnt
             if direction == 'down octaves':
-                return self.hz ** transposition_amnt
+                return self.hz *2**(-1*transposition_amnt)
         else:
             if direction is None:
                 print('Before transpoition can occur, please indicate what direction')
@@ -103,22 +122,22 @@ class Hz:
                 transposed_list = []
                 if direction == 'up cents':
                     for hz in wav_list:
-                        transposed_list.append(float(hz) + float(transposition_amnt))
+                        transposed_list.append(round(hz*2**(round(transposition_amnt,2)/1200),2))
                 if direction == 'up series':
                     for hz in wav_list:
-                        transposed_list.append(float(hz) * float(transposition_amnt))
+                        transposed_list.append(hz * transposition_amnt)
                 if direction == 'up octaves':
                     for hz in wav_list:
-                        transposed_list.append(float(hz) **float(transposition_amnt))
+                        transposed_list.append(hz *2**transposition_amnt)
                 if direction == 'down cents':
                     for hz in wav_list:
-                        transposed_list.append(float(hz) - float(transposition_amnt))        
+                        transposed_list.append(round(hz*2**(round((-1*transposition_amnt),2)/1200),))        
                 if direction == 'down series':
                     for hz in wav_list:
-                        transposed_list.append(float(hz) / float(transposition_amnt))
+                        transposed_list.append(hz / transposition_amnt)
                 if direction == 'down octaves':
                     for hz in wav_list:
-                        transposed_list.append(float(hz) **float(transposition_amnt))
+                        transposed_list.append(hz *2**(-1*transposition_amnt))
             
         return transposed_list
 
