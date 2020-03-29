@@ -29,8 +29,7 @@ interval_systems = {'semi_tones': 2**(1/12),
                     'eigth_tones': 2**(1/48),
                     'twelevth_tones': 2**(1/72),
                     'sixteenth_tones': 2**(1/96),
-                    'twenty_fourth_tones': 2**(1/144)
-
+                    'twenty_fourth_tones': 2**(1/144)}
 
 ###############################
 # F R E Q E U N C Y C L A S S #
@@ -87,13 +86,13 @@ class Hz:
         return overtone_series
 
     def make_system(self, system_type=interval_systems.get('semi_tones'), system_size=range(0,12)):
-    system = {}
-    freq_position = 0
-    for p in system_size:
-        freq = hz * (system_type)**p
-        system['freq_{}'.format(freq_position)] = round(freq, 2)
-        freq_position += 1
-    return system
+        system = {}
+        freq_position = 0
+        for p in system_size:
+            freq = self.hz * (system_type)**p
+            system['freq_{}'.format(freq_position)] = round(freq, 2)
+            freq_position += 1
+        return system
     
     '''
     The parameters for transpose_hz allow for a variety of transpositon types. 
