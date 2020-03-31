@@ -512,7 +512,7 @@ def concat_layers(str, fname):
 def show_signal(rec):
     y, sr = librosa.load(rec)
 
-    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+    # chroma = librosa.feature.chroma_stft(y=y, sr=sr)
 
     BINS_PER_OCTAVE = 12 * 3
     N_OCTAVES = 7
@@ -527,9 +527,100 @@ def show_signal(rec):
                             x_axis='time')
     return plt.tight_layout()
 
+########################################
+# S T R E T C H  A L G O R I T H I M S #
+########################################
+
+def stretch_algorithim_1(infile, factor, outfile):
+    CHANNELS = 1
+    swidth = 2
+    # slow down and speed up wav files 
+    # if the number is under 1 it is slower, if the number is above 1, it is faster
+    factor = factor
+    spf = wave.open(infile, 'rb')
+    RATE=spf.getframerate()
+    signal = spf.readframes(-1)
+    wf = wave.open(outfile, 'wb')
+    wf.setnchannels(CHANNELS)
+    wf.setsampwidth(swidth)
+    wf.setframerate(RATE*factor)
+    wf.writeframes(signal)
+    wf.close()
+    print('stretch_algorithim_1 complete')
+
+def stretch_algorithim_2(infile, factor, outfile):
+
+    infile=wave.open(infile, 'rb')
+    rate= infile.getframerate()
+    channels=infile.getnchannels()
+    swidth=infile.getsampwidth()
+    nframes= infile.getnframes()
+    audio_signal= infile.readframes(nframes)
+    outfile = wave.open(outfile, 'wb')
+    outfile.setnchannels(channels)
+    outfile.setsampwidth(swidth)
+    outfile.setframerate(rate/factor)
+    outfile.writeframes(audio_signal)
+    outfile.close()
+    return print('stretch_algorithim_2 complete')
+
+def stretch_algorithim_3(infile, factor, outfile):
+    y, sr = librosa.load(infile)
+    time_shift = librosa.effects.time_stretch(y, factor)
+    librosa.output.write_wav(outfile, time_shift, sr)
+    return print('strech_algorithim_3 complete') 
+
+
+############################################
+# P I T C H S H I F T  A L G O R I T H I M #
+############################################
+
+def pitch_shift_1(infile, outfile, n_steps, base_of_octave_divison):
+    y, sr = librosa.load(infile)
+    pitch_shift = librosa.effects.pitch_shift(y, sr, 
+                                              n_steps=n_steps, 
+                                              bins_per_octave=base_of_octave_divison)
+    librosa.output.write_wav(outfile, pitch_shift, sr)
+    return print('pitch_shift_1 complete')
+
+def pitch_shift_2(infile, outfile, hz):
+    # this function isn't that great
+    # pitch up
+    wr = wave.open(infile, 'r')
+    # Set the parameters for the output file.
+    par = list(wr.getparams())
+    par[3] = 0  # The number of samples will be set by writeframes.
+    par = tuple(par)
+    ww = wave.open(outfile, 'w')
+    ww.setparams(par)
+    fr = 20
+    sz = wr.getframerate()//fr  # Read and process 1/fr second at a time.
+    # A larger number for fr means less reverb.
+    c = int(wr.getnframes()/sz)  # count of the whole file
+    shift = hz//fr 
+    for _ in range(c):
+        da = np.fromstring(wr.readframes(sz), dtype=np.int16)
+        left, right = da[0::2], da[1::2]  # left and right channel
+        lf, rf = np.fft.rfft(left), np.fft.rfft(right)
+        lf, rf = np.roll(lf, shift), np.roll(rf, shift)
+        lf[0:shift], rf[0:shift] = 0, 0
+        nl, nr = np.fft.irfft(lf), np.fft.irfft(rf)
+        ns = np.column_stack((nl, nr)).ravel().astype(np.int16)
+        ww.writeframes(ns.tostring())
+    wr.close()
+    ww.close()
+    return print('pitch_shift_2 complete')
+
+
+
 #########################
 # S A V E O B J E C T S #
 #########################
+
+'''
+these function are for saving dictionaries of wav classes.
+although they can be used to save anytime of object.
+'''
 
 def save_obj(obj, filename):
     with open(filename, 'wb') as saved_obj:
