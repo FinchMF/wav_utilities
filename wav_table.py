@@ -549,7 +549,8 @@ def stretch_algorithim_1(infile, factor, outfile):
     print('stretch_algorithim_1 complete')
 
 def stretch_algorithim_2(infile, factor, outfile):
-
+    # to time stretch recording (pitch is not as affected)
+    # less that 1 speeds up the audio, greater than 1 slows down the audio
     infile=wave.open(infile, 'rb')
     rate= infile.getframerate()
     channels=infile.getnchannels()
@@ -610,6 +611,34 @@ def pitch_shift_2(infile, outfile, hz):
     wr.close()
     ww.close()
     return print('pitch_shift_2 complete')
+
+
+##########################
+# D E T E C T  P I T C H #
+##########################
+
+def detech_pitch(fname):
+
+    data_size = 40000
+    fname = fname
+    wav_file = wave.open(fname, 'r')
+    frate = wav_file.getframerate()
+    data = wav_file.readframes(data_size)
+    wav_file.close()
+    data = struct.unpack('{n}h'.format(n=data_size), data)
+    data = np.array(data)
+
+    w = np.fft.fft(data)
+    freqs = np.fft.fftfreq(len(w))
+    print(freqs.min(), freqs.max())
+    # (-0.5, 0.499975)
+
+    # Find the peak in the coefficients
+    idx = np.argmax(np.abs(w))
+    freq = freqs[idx]
+    freq_in_hertz = abs(freq * frate)
+    print(freq_in_hertz)
+    return freq_in_hertz
 
 
 

@@ -273,6 +273,63 @@ def offset_from_closest_pitch(freq):
         print('cent offset from '+ f + ' is: ', diff)
         return f, diff
 
+def develop_offset_dict(system):
+    pitch_offset = {}
+    A=0
+    A_=0
+    B=0
+    C=0
+    C_=0
+    D=0
+    D_=0
+    E=0
+    F=0
+    F_=0
+    G=0
+    G_=0
+    for k,v in system.items():
+        
+        p_o = offset_from_closest_pitch(v)
+        if p_o[0] == 'A4':
+            pitch_offset[p_o[0]+'_{}'.format(A)] = p_o[1]
+            A+=1
+        if p_o[0] == 'A#4':
+            pitch_offset[p_o[0]+'_{}'.format(A_)] = p_o[1]
+            A_+=1
+        if p_o[0] == 'B4':
+            pitch_offset[p_o[0]+'_{}'.format(B)] = p_o[1]
+            B+=1
+        if p_o[0] == 'C5':
+            pitch_offset[p_o[0]+'_{}'.format(C)] = p_o[1]
+            C+=1
+        if p_o[0] == 'C#5':
+            pitch_offset[p_o[0]+'_{}'.format(C_)] = p_o[1]
+            C_+=1
+        if p_o[0] == 'D5':
+            pitch_offset[p_o[0]+'_{}'.format(D)] = p_o[1]
+            D+=1
+        if p_o[0] == 'D#5':
+            pitch_offset[p_o[0]+'_{}'.format(D_)] = p_o[1]
+            D_+=1
+        if p_o[0] == 'E5':
+            pitch_offset[p_o[0]+'_{}'.format(E)] = p_o[1]
+            E+=1
+        if p_o[0] == 'F5':
+            pitch_offset[p_o[0]+'_{}'.format(F)] = p_o[1]
+            F+=1
+        if p_o[0] == 'F#5':
+            pitch_offset[p_o[0]+'_{}'.format(F_)] = p_o[1]
+            F_+=1
+        if p_o[0] == 'G5':
+            pitch_offset[p_o[0]+'_{}'.format(G)] = p_o[1]
+            G+=1
+        if p_o[0] == 'G#5':
+            pitch_offset[p_o[0]+'_{}'.format(G_)] = p_o[1]
+            G_+=1
+
+    return pitch_offset
+
+
 def freq_to_midi(freq):
     midi_note = round(69 + 12*log2(freq/440))
     return midi_note
