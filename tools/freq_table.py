@@ -6,7 +6,7 @@
 
 
 '''
-This module contains a set of pitch and frequency tools.
+This module contains a set of pitch and frequency analytic tools.
 
 pitch_to_frequency is a refrence dictionary that gives you a pitch's frequency.
 This dictionary will continue to be developed to include microtonal frequencies
@@ -256,10 +256,14 @@ def closest_pitch(freq):
     n = h % 12
     return name[n] + str(octave)
 
+# find the difference in cents between two frequncies. 
+# input order is frequency descending by hz
 def find_cent_diff(freq_2, freq_1):
     cents = round(1200 * log2(freq_2/freq_1),2)
     return cents
 
+
+# find both closet pitch given a random frequency and the offset in cents
 def offset_from_closest_pitch(freq):
     print('given hz: ', freq)
     f = closest_pitch(freq)
@@ -273,6 +277,8 @@ def offset_from_closest_pitch(freq):
         print('cent offset from '+ f + ' is: ', diff)
         return f, diff
 
+# given a generated system built off 440hz, the his returns a dictionary of the octave to 
+# show how alternative systems differ from the western equal tempered system
 def develop_offset_dict(system):
     pitch_offset = {}
     A=0
@@ -330,10 +336,16 @@ def develop_offset_dict(system):
     return pitch_offset
 
 
+###########
+# M I D I #
+###########
+
+
+# convert freq to midi
 def freq_to_midi(freq):
     midi_note = round(69 + 12*log2(freq/440))
     return midi_note
-
+# convert midi to freq
 def midi_to_freq(midi):
     freq = round(2**((midi-69)/12)*440, 2)
     return freq
