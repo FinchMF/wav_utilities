@@ -9,6 +9,7 @@ import numpy as np
 import wave
 from scipy import signal as sg
 from scipy.io.wavfile import read, write
+from scipy.fftpack import fft
 from audioop import add, mul
 from warnings import warn
 import librosa
@@ -513,7 +514,7 @@ def concat_layers(str, fname):
 # S H O W S I G N A L #
 #######################
 
-''' Show signal plots the wav file in a spectrogram'''
+''' Show signal plots the wav file in a spectrogram and spectrum decomposition'''
 
 def show_signal(rec):
     y, sr = librosa.load(rec)
@@ -532,6 +533,24 @@ def show_signal(rec):
                             bins_per_octave=BINS_PER_OCTAVE,
                             x_axis='time')
     return plt.tight_layout()
+
+
+
+def fft_plot(wav, sr, xlimit=None, ylimit=None):
+    n = len(wav)
+    T = 1/sr
+    yf = fft(wav)
+    xf = np.linspace(0.0, 1.0/(2.0*T), n/2)
+    fig, ax = plt.subplots()
+    ax.plot(xf, 2.0/n * np.abs(yf[:n//2]))
+    plt.xlim(xlimit[0], xlimit[1])
+    plt.ylim(ylimit[0], ylimit[1])
+    plt.grid()
+    plt.xlabel('Frequency --- >')
+    plt.ylabel('Magnitude')
+    return plt.show()
+
+
 
 ########################################
 # S T R E T C H  A L G O R I T H I M S #
@@ -663,10 +682,10 @@ def input_for_delay(filename,frames=10000000): #10000000 is an arbitrary large n
 def delay_wave(audio, params, stem, suffix):
     #dynamic format as the data is being passed
     filename=stem.replace('.wav','_{}.wav'.format(suffix))
-    with wave.open(filename,'wb') as wf:
-        wf.setparams(params)
-        wf.writeframes(audio)
-        wf.close()
+    output = wave.open(filename,'wb')
+    output.setparams(params)
+    output.writeframes(audio)
+    output.close()
 
 
 def mode_1(audio_bytes,params,offset_ms):
