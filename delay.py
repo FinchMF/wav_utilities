@@ -32,7 +32,6 @@ def delay(audio_bytes,params,offset_ms):
 
 
 
-
 #new delay function with factor
 def delay_2(audio_bytes,params,offset_ms,factor=1):
     """version 2: delay after 'offset_ms' milliseconds amplified by 'factor'"""

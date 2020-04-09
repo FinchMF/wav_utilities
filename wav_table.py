@@ -6,7 +6,11 @@
 
 import struct
 import numpy as np
+import wave
 from scipy import signal as sg
+from scipy.io.wavfile import read, write
+from audioop import add, mul
+from warnings import warn
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
@@ -228,8 +232,7 @@ class Raw_Signal:
             plt.stem(self.x,y, 'r', )
             plt.plot(self.x,y)
 
-from scipy.io.wavfile import write
-import wave
+
 
 class Wav_Signal:
     """ 
@@ -642,13 +645,185 @@ def detech_pitch(fname):
 
 
 
-###################################
-# D E L A Y A L G O R I T H I M S #
-###################################
+####################################
+# D E L A Y  A L G O R I T H I M S #
+####################################
 
-## see file
+def input_wave(filename,frames=10000000): #10000000 is an arbitrary large number of frames
+    with wave.open(filename,'rb') as wave_file:
+        params=wave_file.getparams()
+        audio=wave_file.readframes(frames)  
+        if params.nchannels!=1:
+            raise Exception("The input audio should be mono for these examples")
+    return params, audio
+
+#output to file so we can use ipython notebook's Audio widget
+def output_wave(audio, params, stem, suffix):
+    #dynamically format the filename by passing in data
+    filename=stem.replace('.wav','_{}.wav'.format(suffix))
+    with wave.open(filename,'wb') as wf:
+        wf.setparams(params)
+        wf.writeframes(audio)
+        wf.close()
 
 
+def delay(audio_bytes,params,offset_ms):
+    """version 1: delay after 'offset_ms' milliseconds"""
+    #calculate the number of bytes which corresponds to the offset in milliseconds
+    offset= params.sampwidth*offset_ms*int(params.framerate/1000)
+    #create some silence
+    beginning= b'\0'*offset
+    #remove space from the end
+    end= audio_bytes[:-offset]
+    return add(audio_bytes, beginning+end, params.sampwidth)
+
+
+#new delay function with factor
+def delay_2(audio_bytes,params,offset_ms,factor=1):
+    """version 2: delay after 'offset_ms' milliseconds amplified by 'factor'"""
+    #calculate the number of bytes which corresponds to the offset in milliseconds
+    offset= params.sampwidth*offset_ms*int(params.framerate/1000)
+    #create some silence
+    beginning= b'\0'*offset
+    #remove space from the end
+    end= audio_bytes[:-offset]
+    #multiply by the factor
+    multiplied_end= mul(audio_bytes[:-offset],params.sampwidth,factor)
+    return add(audio_bytes, beginning+ multiplied_end, params.sampwidth)
+
+
+def delay_3(audio_bytes,params,offset_ms,factor=1,num=1):
+    """version 3: 'num' delays after 'offset_ms' milliseconds amplified by 'factor'"""
+    if factor>=1:
+        warn("These settings may produce a very loud audio file. \
+             Please use caution when listening")
+    #calculate the number of bytes which corresponds to the offset in milliseconds
+    offset=params.sampwidth*offset_ms*int(params.framerate/1000)
+    #add extra space at the end for the delays
+    delayed_bytes=audio_bytes
+    for i in range(num):
+        #create some silence
+        beginning = b'\0'*offset*(i+1)
+        #remove space from the end
+        end = audio_bytes[:-offset*(i+1)]
+        #multiply by the factor
+        multiplied_end= mul(end,params.sampwidth,factor**(i+1))
+        delayed_bytes= add(delayed_bytes, beginning+multiplied_end, params.sampwidth)
+    return delayed_bytes
+
+
+def delay_4(audio_bytes,params,offset_ms,factor=1,num=1):
+    """version 4: 'num' delays after 'offset_ms' milliseconds amplified by 'factor' 
+    with additional space"""
+    if factor>=1:
+        warn("These settings may produce a very loud audio file. \
+              Please use caution when listening")
+    #calculate the number of bytes which corresponds to the offset in milliseconds
+    offset=params.sampwidth*offset_ms*int(params.framerate/1000)
+    #add extra space at the end for the delays
+    audio_bytes=audio_bytes+b'\0'*offset*(num)
+    #create a copy of the original to apply the delays
+    delayed_bytes=audio_bytes
+    for i in range(num):
+        #create some silence
+        beginning = b'\0'*offset*(i+1)
+        #remove space from the end
+        end = audio_bytes[:-offset*(i+1)]
+        #multiply by the factor
+        multiplied_end= mul(end,params.sampwidth,factor**(i+1))
+        delayed_bytes= add(delayed_bytes, beginning+multiplied_end, params.sampwidth)
+    return delayed_bytes
+
+
+###########################
+# R E V E R S E A U D I O #
+###########################
+
+# input a wav file, as well as the new file's intended name
+# get audio reveresed
+
+def reverse_audio(wav, new_wav):
+    sr, y = read(wav)
+    reverse_wav = y[::-1]
+    write(new_wav, sr, reverse_wav)
+
+
+
+############################
+# A D J U S T  V O L U M E #
+############################
+
+def adjust_volume(wav, new_wav, adjust, factor):
+ 
+    # Open
+    w = wave.open(wav,"rb")
+    p = w.getparams()
+    f = p[3] # number of frames
+    s = w.readframes(f)
+    w.close()
+
+    # Edit
+    if adjust == 'decrease':
+        s = np.fromstring(s, np.int16) // factor  # half amplitude
+        s = struct.pack('h'*len(s), *s)
+    if adjust == 'increase':
+        s = np.fromstring(s, np.int16) * factor  # half amplitude
+        s = struct.pack('h'*len(s), *s)
+
+
+    # Save
+    w = wave.open(new_wav,"wb")
+    w.setparams(p)
+    w.writeframes(s)
+    w.close()
+
+
+##################################################
+# S P L I T  W A V  I N T O  E Q U A L P A R T S #
+#       based on seconds                         #
+##################################################
+
+def intervals(parts, duration):
+    part_duration = int(duration / parts)
+    return [(i * part_duration, (i + 1) * part_duration) for i in range(int(parts))]
+
+
+def divide_tracks(wav_fp, seconds_of_division):
+    wav = wave.open(wav_fp, 'rb')
+    frames = wav.getnframes()
+    rate = wav.getframerate()
+    duration = round(frames / rate, 2)
+    needed_bin = duration / seconds_of_division
+    factor = duration / needed_bin
+    divider = intervals(needed_bin, frames)
+    return [list(divider), wav, wav_fp]
+
+
+
+def sample_divisions(divisions, wav, wav_fp, filenum, root):
+    sci_wav = read(wav_fp)
+    root = root
+    count = 0
+    for divides in divisions:
+        filename = root + 'wav_{}_{}_.wav'.format(filenum, count)
+        print(sci_wav[1][divides[0]:divides[1]])
+        write(filename, wav.getframerate() ,sci_wav[1][divides[0]:divides[1]])
+        print('rendered')
+        count += 1
+
+
+# takes three functions above and recieves list of wav files and seperates the wav in equal parts (by seconds)
+# then saves the files in given root diretory
+
+def split_wav_s(wav_list, num, root):
+    for filenum, wav in enumerate(wav_list):
+        divisions = divide_tracks(wav, num)
+        sample_divisions(divisions[0],
+                        divisions[1],
+                        divisions[2],
+                        filenum,
+                        root)
+    return print('Finished')
 
 
 #########################
