@@ -159,7 +159,8 @@ semitone_intervals = {'m2': 2**(1/12),
              'm6': (2**8)**(1/12),
              'M6': (2**9)**(1/12),
              'm7': (2**10)**(1/12),
-             'M7': (2**11)**(1/12)
+             'M7': (2**11)**(1/12),
+             'P8': (2**12)**(1/12)
              }
 
 
@@ -334,6 +335,16 @@ def develop_offset_dict(system):
             G_+=1
 
     return pitch_offset
+
+
+#############################################################
+# I N T E R V A L S as F R E Q U E N C Y  D I S T A N C E S #
+#############################################################
+
+def distance_of_interval(freq, interval):
+    dist = round((freq * interval) - freq,2)
+    return dist
+
 
 
 ###########
