@@ -536,7 +536,8 @@ def show_signal(rec):
 
 
 
-def fft_plot(wav, sr, xlimit=None, ylimit=None):
+def fft_plot(wav, xlimit=(0,1000), ylimit=(0,3200)):
+    sr, wav = read(wav)
     n = len(wav)
     T = 1/sr
     yf = fft(wav)
