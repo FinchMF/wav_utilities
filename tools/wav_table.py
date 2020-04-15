@@ -7,6 +7,8 @@
 import struct
 import numpy as np
 import wave
+import soundfile
+import audioop
 from scipy import signal as sg
 from scipy.io.wavfile import read, write
 from scipy.fftpack import fft
@@ -576,7 +578,7 @@ def stretch_algorithim_1(infile, factor, outfile):
 
 def stretch_algorithim_2(infile, factor, outfile):
     # to time stretch recording (pitch is not as affected)
-    # less that 1 speeds up the audio, greater than 1 slows down the audio
+    # less than 1 speeds up the audio, greater than 1 slows down the audio
     infile=wave.open(infile, 'rb')
     rate= infile.getframerate()
     channels=infile.getnchannels()
@@ -597,6 +599,17 @@ def stretch_algorithim_3(infile, factor, outfile):
     librosa.output.write_wav(outfile, time_shift, sr)
     return print('strech_algorithim_3 complete') 
 
+def stretch_algorithm_4(infile, factor, outfile):
+    # less than 1 speeds up the audio, greater than 1 slows down the audio
+    sr, data = read(infile)
+    write(outfile, int((sr / factor)), data)
+    return print('strech_algorithim_4 complete')
+
+def stretch_algorithim_5(infile, factor, outfile):
+    # less than 1 speeds up the audio, greater than 1 slows down the audio
+    data, sr = soundfile.read(infile)
+    soundfile.write(outfile, data, int((sr / factor)))
+    return print('stretch_algorithim_5 complete')
 
 ############################################
 # P I T C H S H I F T  A L G O R I T H I M #
@@ -764,10 +777,35 @@ def mode_4(audio_bytes,params,offset_ms,factor=1,num=1):
 # input a wav file, as well as the new file's intended name
 # get audio reveresed
 
-def reverse_audio(wav, new_wav):
+def reverse_audio_1(wav, new_wav):
     sr, y = read(wav)
     reverse_wav = y[::-1]
     write(new_wav, sr, reverse_wav)
+    message = 'youre audio is now reversed'
+    print(message[::-1])
+
+def reverse_audio_2(wav, new_wav):
+    data, samplerate = soundfile.read(wav)
+    soundfile.write(new_wav, data[::-1], 
+                    int(samplerate))
+    message = 'youre audio is now reversed'
+    print(message[::-1])
+
+def reverse_audio_3(infile,outfile):
+    # to time stretch recording (pitch is not as affected)
+    # less that 1 speeds up the audio, greater than 1 slows down the audio
+    infile=wave.open(infile, 'rb')
+    rate= infile.getframerate()
+    channels=infile.getnchannels()
+    swidth=infile.getsampwidth()
+    nframes= infile.getnframes()
+    audio_signal= infile.readframes(nframes[::-1])
+    outfile = wave.open(outfile, 'wb')
+    outfile.setnchannels(channels)
+    outfile.setsampwidth(swidth)
+    outfile.setframerate(rate)
+    outfile.writeframes(audio_signal)
+    outfile.close()
     message = 'youre audio is now reversed'
     print(message[::-1])
 
@@ -798,6 +836,22 @@ def adjust_volume(wav, new_wav, adjust, factor):
     w.setparams(p)
     w.writeframes(s)
     w.close()
+
+################################
+# A N A L Y Z E  W A V F I L E #
+################################
+
+def analyze_wav(wav):
+    wav_5 = wave.open(wav)
+    bytes_per_second = wav_5.getsampwidth() 
+    sample_rate =  wav_5.getframerate()
+    print('sampling rate of file: ' + str(sample_rate) + ' Hz')
+    channels = wav_5.getnchannels()
+    #calculate
+    bit_rate = sample_rate * bytes_per_second * 8 * channels
+    bitdepth = bit_rate // sample_rate
+    print('bit depth of file: ' + str(bitdepth) + ' bits')
+
 
 
 ##################################################
@@ -844,7 +898,7 @@ def sample_divisions(divisions, wav, wav_fp, filenum, root):
 # wav_list = list of audio wavs
 # num = equals number of seconds for the tracks to evenly be divided into
 # root = directory path the files will be saved in
-
+# this one is for a list of files
 def split_wav_s(wav_list, num, root):
     for filenum, wav in enumerate(wav_list):
         divisions = divide_tracks(wav, num)
@@ -854,6 +908,31 @@ def split_wav_s(wav_list, num, root):
                         filenum,
                         root)
     return print('Finished')
+
+
+def split_single_wav_s(wav, num):
+    sr, data = read(wav)
+    divison = divide_tracks(wav, num)
+    count = 0
+    for divides in divison[0]:
+        filename = 'cut_wav_{}.wav'.format(count)
+        write(filename, sr, data[divides[0]:divides[1]])
+        count += 1
+    return print('wav file is cut in to equal parts with ' + str(num) + ' second sections')
+
+#######################
+# S E T  T O  M O N O #
+#######################
+
+def set_to_mono(wav, outfile):
+    stereo = wave.open(wav, 'rb')
+    mono = wave.open(outfile, 'wb')
+    mono.setparams(stereo.getparams())
+    mono.setnchannels(1)
+    mono.writeframes(audioop.tomono(stereo.readframes(float('inf')), stereo.getsampwidth(), 1, 1))
+    mono.close()
+    return print(str(wav) + ' is now set to mono as ' + str(outfile))
+
 
 
 #########################
